@@ -1,0 +1,7 @@
+forking server:
+ - ham fork tra lai process id ,(khi chay ham fork:  tra ve id tien trinh con , khi dang dung con thi tra ve la 0)
+ - tien trinh cha phai doc (kiem tra) trang thai cua tien trinh con va cap nhat trang thai cua chuong trinh con
+ - neu con ngat ma cha khong update state thi roi vang trang thai zombie
+ - tien trinh con ket thuc sinh ra sigchld, tien trinh cha se goi ham wait de xu ly bat tin hieu
+ 
+

@@ -4,25 +4,28 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-typedef struct {
+typedef struct
+{
     struct sockaddr_in addr;
     int active;
 } Client;
 
 Client clients[5];
 
-void add_client(struct sockaddr_in *cliaddr) {
-    // Kiểm tra xem client đã tồn tại hay chưa
-    for (int i = 0; i < 5; i++) {
-        if (clients[i].active && memcmp(&clients[i].addr, cliaddr, sizeof(struct sockaddr_in)) == 0) {
-            // Client đã tồn tại, không cần thêm
+void add_client(struct sockaddr_in *cliaddr)
+{
+    for (int i = 0; i < 5; i++)
+    {
+        if (clients[i].active && memcmp(&clients[i].addr, cliaddr, sizeof(struct sockaddr_in)) == 0)
+        {
             return;
         }
     }
 
-    // Thêm client mới nếu chưa tồn tại
-    for (int i = 0; i < 5; i++) {
-        if (!clients[i].active) {
+    for (int i = 0; i < 5; i++)
+    {
+        if (!clients[i].active)
+        {
             clients[i].addr = *cliaddr;
             clients[i].active = 1;
             break;
@@ -30,19 +33,22 @@ void add_client(struct sockaddr_in *cliaddr) {
     }
 }
 
-void forward_message(int sockfd, char *mesg, int n, struct sockaddr_in *sender) {
-    for (int i = 0; i < 5; i++) {
-        if (clients[i].active && memcmp(&clients[i].addr, sender, sizeof(struct sockaddr_in)) != 0) {
-            sendto(sockfd, mesg, n, 0, (struct sockaddr *) &clients[i].addr, sizeof(clients[i].addr));
+void forward_message(int sockfd, char *mesg, int n, struct sockaddr_in *sender)
+{
+    for (int i = 0; i < 5; i++)
+    {
+        if (clients[i].active && memcmp(&clients[i].addr, sender, sizeof(struct sockaddr_in)) != 0)
+        {
+            sendto(sockfd, mesg, n, 0, (struct sockaddr *)&clients[i].addr, sizeof(clients[i].addr));
         }
     }
 }
 
-
 #define SERV_PORT 1255
 #define MAXLINE 255
 
-int main() {
+int main()
+{
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
     char mesg[MAXLINE];
@@ -55,26 +61,29 @@ int main() {
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(SERV_PORT);
 
-    if (bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) >= 0) {
+    if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) >= 0)
+    {
         printf("Server is running at port %d\n", SERV_PORT);
-    } else {
+    }
+    else
+    {
         perror("bind failed");
         return 0;
     }
 
-    for (;;) {
+    for (;;)
+    {
         len = sizeof(cliaddr);
         printf("Receiving data ...\n");
-        n = recvfrom(sockfd, mesg, MAXLINE, 0, (struct sockaddr *) &cliaddr, &len);
+        n = recvfrom(sockfd, mesg, MAXLINE, 0, (struct sockaddr *)&cliaddr, &len);
         mesg[n] = '\0';
         // printf("Receive from: %s:%d: %s\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), mesg);
         // sendto(sockfd, mesg, n, 0, (struct sockaddr *) &cliaddr, len);
-        printf("\nReceive from: %s:%d: %s\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), mesg);
+        printf("Receive from: %s:%d: %s\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port), mesg);
 
         add_client(&cliaddr);
         forward_message(sockfd, mesg, n, &cliaddr);
     }
-
 
     close(sockfd);
     return 0;
